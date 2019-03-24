@@ -1,0 +1,56 @@
+<html>
+	<head>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Resume Geo Visualization Demo">
+		<meta name="author" content="Ren Zuo">
+
+		<title>Official Geo Visualization</title>
+
+		<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/bootstrap-select.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/datatables.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/dataTables.bootstrap4.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/leaflet.css">
+		<link rel="stylesheet" type="text/css" href="./css/main.css">
+
+		<script type="text/javascript" src="./libs/jquery.min.js"></script>
+		<script type="text/javascript" src="./libs/d3.min.js"></script>
+		<script type="text/javascript" src="./libs/leaflet.js"></script>
+		<script type="text/javascript" src="./libs/datatables.min.js"></script>
+		<script type="text/javascript" src="./libs/dataTables.bootstrap4.min.js"></script>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+			<a class="navbar-brand mr-auto" href="#"><strong>Official Resume Geography Visualization</strong></a>
+			<nav class="my-2 my-md-0 mr-md-3">
+				<span id="dataset-tag" class="navbar-brand font-weight-light">Current Official: {{official_name}}</span>
+			</nav>
+<!-- 			<button id="phase-II-button" class="btn btn-outline-light">Phase II</button>
+			<button id="summary-button" class="btn btn-outline-light">Summary</button>
+			<a href="/"><button id="reset-button" class="btn btn-outline-light">Reload</button></a> -->
+		</nav>
+
+		<div id="main-container" class="container full-height">
+			<div class="col-sm-9 full-height">
+				<div id="map-container" class="view-container">
+					<div id="map-canvas">
+					</div>
+				</div>
+			</div>
+		</div>
+
+<!-- 		<script type="text/javascript" src="./scripts/config.js"></script>
+		<script type="text/javascript" src="./scripts/hierarchy_view.js"></script> -->
+		<script type="text/javascript" src="./scripts/map_view.js"></script>
+<!-- 		<script type="text/javascript" src="./scripts/search_view.js"></script>
+		<script type="text/javascript" src="./scripts/weight_view.js"></script>
+		<script type="text/javascript" src="./scripts/tornado_view.js"></script>
+		<script type="text/javascript" src="./scripts/stat_view.js"></script>
+		<script type="text/javascript" src="./scripts/summary_view.js"></script>
+		<script type="text/javascript" src="./scripts/index.js"></script> -->
+	</body>
+</html>

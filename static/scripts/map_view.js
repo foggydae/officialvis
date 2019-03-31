@@ -5,8 +5,9 @@ var map;
 var marker_dict, maxValue;
 var entities, branches, controller, baseMaps;
 var new_places = L.layerGroup();
+var move_path, arrow_head;
 
-var init_map_view = function () {
+var init_map_view = function (official_idx) {
 	var baseMapLayer_light = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 		id: "light",
 		attribution: ""
@@ -16,8 +17,8 @@ var init_map_view = function () {
 		attribution: ""
 	});
 	baseMaps = {
-	    "light": baseMapLayer_light,
-	    "standard": baseMapLayer_standard
+		"light": baseMapLayer_light,
+		"standard": baseMapLayer_standard
 	};
 
 	// put map to map-canvas
@@ -54,72 +55,24 @@ var init_map_view = function () {
 
 	// console.log(data);
 	// console.log(geo_dict["北京市"]);
-	update_map_view(0);
+	update_map_view(official_idx);
 }
 
 var update_map_view = function (official_idx) {
-	$("#dataset-tag").html(data["data"][official_idx]["name"]);
+	$("#dataset-tag").html(raw_data["data"][official_idx]["name"]);
 
-	var central_lat = 39.9113,
-		central_lon = 116.3805;
-
-	var resume_by_loc = {};
-
-	for (var idx in data["data"][official_idx]["resumes"]) {
-		let entry = data["data"][official_idx]["resumes"][idx];
-		let central = entry["district"]["central"],
-			province = entry["district"]["province"],
-			city = entry["district"]["city"],
-			county = entry["district"]["county"];
-		let loc, cur_lat, cur_lon;
-		if (central) {
-			loc = "中央";
-			cur_lat = central_lat;
-			cur_lon = central_lon;
-		} else if (province != "" & province != "N.A." & city != "" & county != "") {
-			loc = province + "_" + city + "_" + county;
-			cur_lat = geo_dict[province][city][county]["lat"];
-			cur_lon = geo_dict[province][city][county]["lon"];
-		} else if (province != "" & province != "N.A." & city != "") {
-			loc = province + "_" + city;
-			cur_lat = geo_dict[province][city]["lat"];
-			cur_lon = geo_dict[province][city]["lon"];
-		} else if (province != "" & province != "N.A." & county != "") {
-			loc = province + "_" + county;
-			cur_lat = geo_dict[province][county]["lat"];
-			cur_lon = geo_dict[province][county]["lon"];
-		} else if (city != "") {
-			loc = city;
-			cur_lat = geo_dict[city]["lat"];
-			cur_lon = geo_dict[city]["lon"];
-		} else if (province != "N.A." & province != "") {
-			loc = province;
-			cur_lat = geo_dict[province]["lat"];
-			cur_lon = geo_dict[province]["lon"];
-		} else {
-			continue;
-		}
-		if (!resume_by_loc.hasOwnProperty(loc)) {
-			resume_by_loc[loc] = {};
-			resume_by_loc[loc]["lat"] = cur_lat;
-			resume_by_loc[loc]["lon"] = cur_lon;
-			resume_by_loc[loc]["resume"] = [];
-			resume_by_loc[loc]["resume"].push(
-				entry["start_time"] + "~" + entry["finish_time"] + ": " + 
-				entry["sector_head"] + "-" + entry["sector_detail"] + ", " + 
-				entry["rank"]
-			);
-		} else {
-			resume_by_loc[loc]["resume"].push(
-				entry["start_time"] + "~" + entry["finish_time"] + ": " + 
-				entry["sector_head"] + "-" + entry["sector_detail"] + ", " + 
-				entry["rank"]
-			)
-		}
-	}
+	var resume_in_map = prepare_map_data(raw_data, official_idx);
+	var resume_by_loc = resume_in_map["geo_dict"];
+	var resume_geo_path = resume_in_map["geo_path"];
+	console.log(resume_in_map);
 
 	new_places = new_places.clearLayers();
-	map.removeLayer(new_places);
+	try {
+		map.removeLayer(move_path);
+		map.removeLayer(arrow_head);
+	} catch(error) {
+		console.log("unable to remove");
+	}
 
 	for (var loc in resume_by_loc) {
 		var str = "<span class='info-header'>" + loc.replace(/_/g, " ") + "</span><br><span>";
@@ -128,7 +81,10 @@ var update_map_view = function (official_idx) {
 		}
 		str += "</span>";
 		new_places.addLayer(
-			L.marker([resume_by_loc[loc]["lat"], resume_by_loc[loc]["lon"]])
+			L.circleMarker([resume_by_loc[loc]["lat"], resume_by_loc[loc]["lon"]], {
+				radius: Math.sqrt(resume_by_loc[loc]["duration"]) / 2,
+				weight: 1
+			})
 			.bindPopup(str)
 			.on("mouseover", function(d) {
 				this.openPopup();
@@ -141,6 +97,15 @@ var update_map_view = function (official_idx) {
 		);
 	}
 	new_places.addTo(map);	
+
+	move_path = L.polyline(resume_geo_path, {color: "#ff7800", weight: 1}).addTo(map);
+    arrow_head = L.polylineDecorator(move_path, {
+        patterns: [
+            // {offset: '100%', repeat: 2, symbol: L.Symbol.arrowHead({pixelSize: 15, polygon: false, pathOptions: {stroke: true}})}
+            // {offset: 0, repeat: 10, symbol: L.Symbol.dash({pixelSize: 0})}
+            { offset: '10%', repeat: '50%', symbol: L.Symbol.arrowHead({pixelSize: 5, polygon: true, pathOptions: {stroke: true}})}
+        ]
+    }).addTo(map);
 }
 
 var init_marker_dict = function (official_data) {
@@ -229,16 +194,16 @@ var get_entity_group = function (map_data) {
 // }
 
 var _get_colors = function (type) {
-    return NODE_COLOR[type];
+	return NODE_COLOR[type];
 }
 
 var _get_radius = function (size) {
-    // return Math.sqrt(Math.sqrt(size)) * 2 + 4;
-    return size;
+	// return Math.sqrt(Math.sqrt(size)) * 2 + 4;
+	return size;
 }
 
 var _get_opacity = function (revenue) {
-    return Math.log(+revenue + 1) / maxValue * 0.9 + 0.1;
+	return Math.log(+revenue + 1) / maxValue * 0.9 + 0.1;
 }
 
 var _get_z_index = function (type) {

@@ -28,4 +28,3 @@ $(window).resize(function () {
 $(".dropdown-item").on("click", function () {
 	update_map_view(official_idx_dict[$(this).html()]);
 })
-

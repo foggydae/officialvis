@@ -16,6 +16,7 @@ var official_idx_dict = {
  ********************/
 
 init_map_view(0);
+init_rank_view(0);
 
 /*********************
  * Manual Responsive *
@@ -27,4 +28,6 @@ $(window).resize(function () {
 
 $(".dropdown-item").on("click", function () {
 	update_map_view(official_idx_dict[$(this).html()]);
+	update_rank_view(official_idx_dict[$(this).html()]);
+	$("#official-btn").html($(this).html());
 })

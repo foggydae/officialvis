@@ -61,7 +61,7 @@ var init_map_view = function (official_idx) {
 var update_map_view = function (official_idx) {
 	$("#dataset-tag").html(raw_data["data"][official_idx]["name"]);
 
-	var resume_in_map = prepare_map_data(raw_data, official_idx);
+	var resume_in_map = prepare_data(raw_data, official_idx);
 	var resume_by_loc = resume_in_map["geo_dict"];
 	var resume_geo_path = resume_in_map["geo_path"];
 	console.log(resume_in_map);

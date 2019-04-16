@@ -32,32 +32,69 @@
 				<button id="official-btn" class="btn btn-secondary dropdown-toggle official-btn" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					陈一新
 				</button>
-				<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-					<button class="dropdown-item">陈一新</button>
-					<button class="dropdown-item">李克强</button>
-					<button class="dropdown-item">习近平</button>
+				<div id="dropdown-menu" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 				</div>
 			</div>
-<!-- 			<nav class="my-2 my-md-0 mr-md-3">
-				<span class="navbar-brand font-weight-light">Current Official: </span>
-				<span id="dataset-tag" class="navbar-brand"></span>
-			</nav> -->
 		</nav>
 
 		<div id="main-container" class="container full-height row">
-			<div class="col-sm-7 full-height">
-				<div id="map-container" class="view-container">
-					<div id="map-canvas">
-					</div>
-				</div>
-			</div>
-			<div class="col-sm-5 full-height no-rt-pd">
+			<div class="col-sm-6 full-height">
 				<div id="third-container">
+					<div class="col-sm-6 full-height row-left-container">
+						<div id="general-info-container" class="view-container text-container">
+							<div id="official-name-container"><h2 id="official-name">基本信息</h2></div>
+							<div id="official-info-container">
+								<div id="official-info-left" class="col-sm-6">
+									<p><span>民族：</span><span id="race">汉族</span></p>
+									<p><span>年龄：</span><span id="age">64</span></p>
+									<p><span>工龄：</span><span id="work-age">46</span></p>
+									<p><span>职称：</span><span id="specialty">无</span></p>
+									<p><span>党龄：</span><span id="party-age">44</span></p>
+									<p><span>出生地：</span><span id="birth-place">福建省-永安</span></p>
+								</div>
+								<div id="official-info-rght" class="col-sm-6">
+									<p><span>性别：</span><span id="gender">男</span></p>
+									<p><span>出生年月：</span><span id="birth-date">1955-12</span></p>
+									<p><span>参工时间：</span><span id="work-date">1973-03</span></p>
+									<p><span>党派：</span><span id="party">中国共产党</span></p>
+									<p><span>入党时间：</span><span id="party-date">1975-08</span></p>
+									<p><span>籍贯：</span><span id="origin">福建省-尤溪</span></p>
+								</div>
+							</div>
+						</div>
+					</div>	
+					<div class="col-sm-6 full-height">
+						<div id="latest-position-container" class="view-container text-container">
+							<div id="official-name-container"><h2 id="official-name">最新任职经历</h2></div>
+							<div id="official-info-container">
+								<div id="official-info-left" class="col-sm-6">
+									<p><span>开始时间：</span><span id="start-date">2017-01</span></p>
+									<p><span>任职情况：</span><span id="age">正常工作状态</span></p>
+									<p><span>大类归口：</span><span id="work-age">一线领导职务</span></p>
+									<p><span>机构：</span><span id="specialty">党委</span></p>
+									<p><span>级别：</span><span id="party-age">副国级</span></p>
+									<p><span>地区类型：</span><span id="birth-place">A-中央</span></p>
+								</div>
+								<div id="official-info-rght" class="col-sm-6">
+									<p><span>结束时间：</span><span id="gender">-</span></p>
+									<p><span>任职状态：</span><span id="birth-date">任职</span></p>
+									<p><span>细分归口：</span><span id="work-date">一线领导职务</span></p>
+									<p><span>职务：</span><span id="party">中央政治局委员</span></p>
+									<p><span>&nbsp</span><span id="party-date"></span></p>
+									<p><span>地区：</span><span id="origin">中央</span></p>
+								</div>
+							</div>
+						</div>
+					</div>	
+				</div>
+				<div id="forth-container">
 					<div id="rank-container" class="view-container">
 					</div>
 				</div>
-				<div id="forth-container">
-					<div id="information-container" class="view-container">
+			</div>
+			<div class="col-sm-6 full-height no-rt-pd">
+				<div id="map-container" class="view-container">
+					<div id="map-canvas">
 					</div>
 				</div>
 			</div>

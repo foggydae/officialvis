@@ -12,6 +12,8 @@ var dates_gap = function (date1, date2, by="years") {
 		return Math.round(gap / (1000 * 3600 * 24 * 365) * 10) / 10;
 	} else if (by == "days") {
 		return Math.ceil(gap / (1000 * 3600 * 24));
+	} else if (by == "age") {
+		return Math.ceil(gap / (1000 * 3600 * 24 * 365));
 	} else {
 		return Math.ceil(gap / (1000 * 3600 * 24 * 30));
 	}
@@ -125,7 +127,7 @@ var clean_data = function (raw_data, official_idx) {
 	let official_dataset = raw_data["data"][official_idx];
 	official_dataset["birth_timestamp"] = new Date(official_dataset['birth']);
 	official_dataset["current_age"] = dates_gap(
-		official_dataset["birth_timestamp"], new Date()
+		official_dataset["birth_timestamp"], new Date(), "age"
 	);
 
 	for (var idx in official_dataset['resumes']) {
@@ -372,7 +374,8 @@ var prepare_data = function (raw_data, official_idx) {
 		"rank_data": rank_seqs['rank_data'],
 		"promo_data": rank_seqs['promo_data'],
 		"diploma_data": edu_seqs["diploma_data"],
-		"edu_data": edu_seqs["edu_data"]
+		"edu_data": edu_seqs["edu_data"],
+		"complete": official
 	}
 }
 

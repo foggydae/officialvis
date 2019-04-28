@@ -17,9 +17,9 @@ var current_official = "陈一新";
  ** Initiate Views **
  ********************/
 
+init_info_view(0);
 init_map_view(0);
 init_rank_view(0);
-
 
 /*********************
  * Manual Responsive *
@@ -34,5 +34,6 @@ $(".dropdown-item").on("click", function () {
 	current_official = $(this).html();
 	update_map_view(official_idx_dict[current_official]);
 	update_rank_view(official_idx_dict[current_official]);
+	update_info_view(official_idx_dict[current_official]);
 	$("#official-btn").html(current_official);
 })

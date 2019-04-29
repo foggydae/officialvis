@@ -1,5 +1,6 @@
 class config():
-	# default official: the official shown when open page
+	# default official: the official to display when openning the page
+	DEFAULT_OFFICIAL = "习近平"
 
 	# use geocode of 中南海 to encode `中央`
 	CENTRAL_LAT = 39.9113

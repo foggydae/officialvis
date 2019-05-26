@@ -1,25 +1,29 @@
 'use strict';
 
-/********************
- * Global Variables *
- ********************/
+/*********************
+ * Global Variables **
+ *********************/
 
-var official_idx_dict = {};
-for (var i = 0; i < raw_data["data"].length; i++) {
-	official_idx_dict[raw_data["data"][i]["name"]] = i;
-	$("#dropdown-menu").append("<button class='dropdown-item'>" + raw_data["data"][i]["name"] + "</button>");
-}
+$.get("/api/get_metadata", function (rtn_string) {
+	var metadata = JSON.parse(rtn_string);
+	console.log(metadata);
 
-var current_official = "陈一新";
+	for (var i = 0; i < metadata["official_list"].length; i++) {
+		$("#dropdown-menu").append(
+			"<button class='dropdown-item'>" + 
+			metadata["official_list"][i] + 
+			"</button>"
+		);
+	}
+});
 
+/*********************
+ ** Initiate Views ***
+ *********************/
 
-/********************
- ** Initiate Views **
- ********************/
-
-init_info_view(0);
-init_map_view(0);
-init_rank_view(0);
+init_info_view();
+init_map_view();
+init_rank_view();
 
 /*********************
  * Manual Responsive *

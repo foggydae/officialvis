@@ -36,3 +36,5 @@ class config():
 		"培训": -5,
 		"NA": 0
 	}
+
+	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"

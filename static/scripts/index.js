@@ -6,7 +6,6 @@
 
 $.get("/api/get_metadata", function (rtn_string) {
 	var metadata = JSON.parse(rtn_string);
-	console.log(metadata);
 
 	for (var i = 0; i < metadata["official_list"].length; i++) {
 		$("#dropdown-menu").append(
@@ -15,6 +14,25 @@ $.get("/api/get_metadata", function (rtn_string) {
 			"</button>"
 		);
 	}
+
+	$("#official-btn").html(metadata["default_official"]);
+
+	$(".dropdown-item").on("click", function () {
+		var current_official = $(this).html();
+		var message = JSON.stringify({
+			"official": current_official
+		});
+		$.get("/api/update_official/" + message, function (rtn_string) {
+			if (rtn_string == "DONE") {
+				update_map_view();
+				update_rank_view();
+				update_info_view();
+				$("#official-btn").html(current_official);
+			} else {
+				console.log(rtn_string);
+			}
+		})
+	});	
 });
 
 /*********************
@@ -31,13 +49,5 @@ init_rank_view();
 
 // additional listener for size-responsiblility of certain views
 $(window).resize(function () { 
-	update_rank_view(official_idx_dict[current_official]);
+	// update_rank_view();
 });
-
-$(".dropdown-item").on("click", function () {
-	current_official = $(this).html();
-	update_map_view(official_idx_dict[current_official]);
-	update_rank_view(official_idx_dict[current_official]);
-	update_info_view(official_idx_dict[current_official]);
-	$("#official-btn").html(current_official);
-})

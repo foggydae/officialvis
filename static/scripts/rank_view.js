@@ -18,7 +18,7 @@ var init_rank_view = function () {
     yaxis_scale = d3.scale.linear();
 
     // Define the axes
-    x_axis = d3.svg.axis().scale(xaxis_scale)
+    x_axis = d3.svg.axis().scale(xaxis_scale).innerTickSize(6)
         .orient("bottom").tickValues([15,20,25,30,35,40,45,50,55,60,65,70,75]);
 
     y_axis = d3.svg.axis().scale(yaxis_scale)
@@ -39,6 +39,7 @@ var init_rank_view = function () {
 
 var update_rank_view = function () {
 
+    // The size of the whole view
     view_width = $("#rank-container").width() - margin.left - margin.right;
     view_height = $("#rank-container").height() - margin.top - margin.bottom;
 

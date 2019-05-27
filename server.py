@@ -41,7 +41,7 @@ def get_map_data():
 		"loc_path": loc_path
 	})
 
-@app.route("/api/update_official/<message>", methods=["POST"])
+@app.route("/api/update_official/<message>", methods=["GET"])
 def update_official(message):
 	new_official = json.loads(message)["official"]
 	dt.update_official(new_official)

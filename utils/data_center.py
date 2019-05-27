@@ -127,8 +127,20 @@ class data_center(config):
 
 	def _clean_data(self, ofcl_dataset):
 		ofcl_dataset["birth_timestamp"] = self._parse_date(ofcl_dataset["birth"])
-		ofcl_dataset["current_age"] = \
-			self._calc_time_gap(ofcl_dataset["birth_timestamp"])
+		ofcl_dataset["current_age"] = self._calc_time_gap(ofcl_dataset["birth_timestamp"])
+		ofcl_dataset["death_timestamp"] = self._parse_date(ofcl_dataset["death"])
+		
+		ofcl_dataset["gender_desc"] = ("男" if ofcl_dataset["gender"] == 1 else "女")
+		
+		ofcl_dataset["hometown_desc"] = self._create_bilevel_desc(ofcl_dataset["home_province"], ofcl_dataset["home_county"])
+		ofcl_dataset["birthplace_desc"] = self._create_bilevel_desc(ofcl_dataset["birth_province"], ofcl_dataset["birth_county"])
+		
+		ofcl_dataset["work_timestamp"] = self._parse_date(ofcl_dataset["job_time"])
+		ofcl_dataset["work_age"] = self._calc_time_gap(ofcl_dataset["work_timestamp"])
+		ofcl_dataset["party_timestamp"] = self._parse_date(ofcl_dataset["party_time"])
+		ofcl_dataset["party_age"] = self._calc_time_gap(ofcl_dataset["party_timestamp"])
+
+		ofcl_dataset["specialist"] = self._create_single_desc(ofcl_dataset["specialist"])
 
 		# clean up resumes
 		for resume_entry in ofcl_dataset["resumes"]:
@@ -165,8 +177,8 @@ class data_center(config):
 			edu_entry["description"] = self._create_edu_desc(edu_entry)
 
 			# calculate timestamp
-			edu_entry["start_timestamp"] = self._parse_date(edu_entry["start_time"][:7])
-			edu_entry["finish_timestamp"] = self._parse_date(edu_entry["finish_time"][:7])
+			edu_entry["start_timestamp"] = self._parse_date(edu_entry["start_time"])
+			edu_entry["finish_timestamp"] = self._parse_date(edu_entry["finish_time"])
 
 			# calculate age
 			edu_entry['start_age'] = \
@@ -176,35 +188,45 @@ class data_center(config):
 
 			# get numeric rank
 			edu_entry['diploma_num'] = self._parse_degree(edu_entry["title"]);
+
+		ofcl_dataset["latest_resume"] = ofcl_dataset["resumes"][-1]
 		return ofcl_dataset
 
 
 	def _create_work_desc(self, entry):
 		return self._create_date_desc(entry["start_time"], entry["finish_time"]) + \
-			self._create_bilevel_desc(entry["sector_head"], entry["sector_detail"]) + \
+			self._create_bilevel_desc(entry["sector_head"], entry["sector_detail"], suffix="，") + \
 			entry["rank"]
 
 	def _create_edu_desc(self, entry):
-		return self._create_date_desc(entry["start_time"][:7], entry["finish_time"][:7]) + \
-			("在职" if entry["type"] == 1 else "非在职") + ", " + \
+		return self._create_date_desc(entry["start_time"], entry["finish_time"]) + \
+			("在职" if entry["type"] == 1 else "非在职") + "，" + \
 			entry["title"] + "学历"
 
-	def _create_date_desc(self, start_time, end_time):
+	def _create_date_desc(self, start_time, end_time, suffix = "："):
 		if start_time != "" and end_time != "" and \
 			start_time is not None and end_time is not None:
-			return start_time + "~" + end_time + ": "
+			return start_time[:7] + "~" + end_time[:7] + suffix
 		elif start_time != "" and start_time is not None:
-			return start_time + "至今: "
+			return start_time[:7] + "至今" + suffix
 		else:
 			return ""
 
-	def _create_bilevel_desc(self, head, detail):
+	def _create_bilevel_desc(self, head, detail, suffix = ""):
 		if head != "" and detail != "":
-			return head + "(" + detail + "), "
+			return head + " - " + detail + suffix
 		elif head != "":
-			return head + ", "
+			return head + suffix
 		else:
 			return ""
+
+	def _create_single_desc(self, value):
+		if value is None:
+			return "无"
+		if value == "" or value == "N.A.":
+			return "无"
+		else:
+			return value
 
 	def _parse_rank(self, rank):
 		try:
@@ -227,7 +249,7 @@ class data_center(config):
 		elif dt == "today":
 			return datetime.today().strftime(self.DATETIME_FORMAT)
 		else:
-			return datetime.strptime(dt, ptn).strftime(self.DATETIME_FORMAT)
+			return datetime.strptime(dt[:7], ptn).strftime(self.DATETIME_FORMAT)
 
 	def _parse_geo(self, province, city, county, central = None):
 		try:

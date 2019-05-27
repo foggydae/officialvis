@@ -26,11 +26,18 @@ def get_official():
 def get_line_data():
 	rank_point, rank_path = dt.get_rank_data()
 	edu_point, edu_path = dt.get_edu_data()
+	x_min, x_max, y_min, y_max, x_list, y_list = dt.get_line_metadata()
 	return json.dumps({
 		"rank_point": rank_point,
 		"rank_path": rank_path,
 		"edu_point": edu_point,
-		"edu_path": edu_path
+		"edu_path": edu_path,
+		"x_min": x_min - 5, 
+		"x_max": x_max, 
+		"y_min": y_min, 
+		"y_max": y_max, 
+		"x_list": [""] + x_list, 
+		"y_list": y_list
 	})
 
 @app.route("/api/get_map_data", methods=["GET"])

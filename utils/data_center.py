@@ -1,6 +1,7 @@
 from utils.config import config
 from datetime import datetime
 import json
+import math
 from pprint import pprint
 from collections import defaultdict
 
@@ -121,6 +122,21 @@ class data_center(config):
 			edu_point.extend(cur_data)
 			edu_path.append(cur_data)
 		return edu_point, edu_path
+
+	def get_line_metadata(self):
+		# find minimal age:
+		min_work_age = min(map(lambda x:x["start_age"], self.official["resumes"]))
+		min_edu_age = min(map(lambda x:x["start_age"], self.official["educations"]))
+		min_age = min([self.MIN_AGE, min_work_age, min_edu_age])
+		if min_age % 5 != 0:
+			min_age = math.floor(min_age / 5) * 5
+		min_year = int(self.official["birth_timestamp"][:4]) + min_age
+		x_list = []
+		cur_age = min_age
+		while cur_age <= self.MAX_AGE:
+			x_list.append(str(cur_age) + "|" + str(int(self.official["birth_timestamp"][:4]) + cur_age))
+			cur_age += 5
+		return min_age, self.MAX_AGE, self.MIN_TICK, self.MAX_TICK, x_list, self.AXIS_TICKS
 
 	def get_official(self):
 		return self.official

@@ -55,6 +55,42 @@ class data_center(config):
 					loc_path.append([[prev_geo, cur_geo]])
 		return loc_dict, loc_path
 
+	def get_summary_data(self):
+		type_dict = defaultdict(int)
+		rank_dict = defaultdict(int)
+		total_duration = 0
+		for entry in self.official["resumes"]:
+			type_dict[entry["type_head"]] += entry["duration"]
+			rank_dict[entry["rank"]] += entry["duration"]
+			total_duration += entry["duration"]
+
+		yet_duration = 0
+		type_summary = []
+		for title, duration in type_dict.items():
+			type_summary.append({
+				"title": title,
+				"color": self.TYPE_COLOR[title],
+				"duration": duration,
+				"percentage": duration / total_duration,
+				"start":yet_duration / total_duration
+			})
+			yet_duration += duration
+
+		yet_duration = 0
+		rank_summary = []
+		for title, duration in rank_dict.items():
+			rank_summary.append({
+				"title": self.AXIS_TICKS[self.RANK_MAP[title] + 5],
+				"rank_num": self.RANK_MAP[title],
+				"color": self.RANK_COLOR[self.AXIS_TICKS[self.RANK_MAP[title] + 5]],
+				"duration": duration,
+				"percentage": duration / total_duration,
+				"start":yet_duration / total_duration
+			})
+			yet_duration += duration
+
+		return type_summary, rank_summary
+
 	def get_rank_data(self):
 		age_dict = defaultdict(lambda:{
 			"rank": [],
@@ -74,7 +110,7 @@ class data_center(config):
 				"class": "rank",
 				"rank": cur_rank,
 				"date": cur_stamp,
-				"age": cur_age
+				"age": cur_age,
 			})
 			rank_path.append({
 				"class": "rank",
@@ -108,6 +144,8 @@ class data_center(config):
 					"diploma": entry['diploma_num'],
 					"date": entry['start_timestamp'],
 					"age": entry['start_age'],
+					"part_time": entry['type'],
+					"color": self.MAJOR_COLOR[entry["major"]],
 					"class": "edu",
 					"type": "start"
 				}, {
@@ -115,6 +153,8 @@ class data_center(config):
 					"diploma": entry['diploma_num'],
 					"date": entry['finish_timestamp'],
 					"age": entry['end_age'],
+					"part_time": entry['type'],
+					"color": self.MAJOR_COLOR[entry["major"]],
 					"class": "edu",
 					"type": "end"
 				}
@@ -124,19 +164,33 @@ class data_center(config):
 		return edu_point, edu_path
 
 	def get_line_metadata(self):
+		def strfyear(year):
+			return datetime(year=year, month=1, day=1).strftime(self.DATETIME_FORMAT)
 		# find minimal age:
-		min_work_age = min(map(lambda x:x["start_age"], self.official["resumes"]))
-		min_edu_age = min(map(lambda x:x["start_age"], self.official["educations"]))
-		min_age = min([self.MIN_AGE, min_work_age, min_edu_age])
-		if min_age % 5 != 0:
-			min_age = math.floor(min_age / 5) * 5
-		min_year = int(self.official["birth_timestamp"][:4]) + min_age
-		x_list = []
-		cur_age = min_age
+		# min_work_age = min(map(lambda x:x["start_age"], self.official["resumes"]))
+		# min_edu_age = min(map(lambda x:x["start_age"], self.official["educations"]))
+		# min_age = min([self.MIN_AGE, min_work_age, min_edu_age])
+		birth_year = datetime.strptime(self.official["birth_timestamp"], self.DATETIME_FORMAT).year
+		start_year = birth_year + self.MIN_AGE - 5
+		min_year = birth_year + self.MIN_AGE
+		max_year = birth_year + self.MAX_AGE
+
+		x_list = [""]
+		cur_age = self.MIN_AGE
 		while cur_age <= self.MAX_AGE:
-			x_list.append(str(cur_age) + "|" + str(int(self.official["birth_timestamp"][:4]) + cur_age))
+			cur_year = min_year + (cur_age - self.MIN_AGE)
+			print(cur_year)
+			x_list.append(str(cur_year) + "(" + str(cur_age) + ")")
 			cur_age += 5
-		return min_age, self.MAX_AGE, self.MIN_TICK, self.MAX_TICK, x_list, self.AXIS_TICKS
+		return strfyear(start_year), strfyear(max_year), self.MIN_TICK, self.MAX_TICK, x_list, self.AXIS_TICKS
+
+	def get_congress_data(self):
+		congress_dates = sorted(map(lambda x:datetime.strptime(x, self.DATETIME_FORMAT), self.NATIONAL_CONGRESS.values()))
+		congress_ranges = zip(congress_dates, congress_dates[1:] + [datetime.today()])
+		return [{"start": ranges[0].strftime(self.DATETIME_FORMAT), 
+			"end": ranges[1].strftime(self.DATETIME_FORMAT),
+			"title": str(list(self.NATIONAL_CONGRESS.keys())[idx]) + "大"
+			} for idx, ranges in enumerate(congress_ranges)]
 
 	def get_official(self):
 		return self.official
@@ -185,7 +239,12 @@ class data_center(config):
 				self._calc_time_gap(resume_entry['finish_timestamp'], ofcl_dataset['birth_timestamp'])
 
 			# get numeric rank
+			resume_entry["rank"] = self._create_single_desc(resume_entry["rank"], replace="其他")
 			resume_entry['rank_num'] = self._parse_rank(resume_entry["rank"])
+
+			# others
+			resume_entry["type_head"] = self._create_single_desc(resume_entry["type_head"], replace="其他")
+			resume_entry["type_detail"] = self._create_single_desc(resume_entry["type_detail"], replace="其他")
 
 		# clean up educations 
 		for edu_entry in ofcl_dataset["educations"]:
@@ -204,6 +263,9 @@ class data_center(config):
 
 			# get numeric rank
 			edu_entry['diploma_num'] = self._parse_degree(edu_entry["title"]);
+
+			# others
+			edu_entry["major"] = self._create_single_desc(edu_entry["major"], replace="其他")
 
 		ofcl_dataset["latest_resume"] = ofcl_dataset["resumes"][-1]
 		return ofcl_dataset
@@ -236,11 +298,11 @@ class data_center(config):
 		else:
 			return ""
 
-	def _create_single_desc(self, value):
+	def _create_single_desc(self, value, replace = "无"):
 		if value is None:
-			return "无"
-		if value == "" or value == "N.A.":
-			return "无"
+			return replace
+		if value == "" or value == "N.A." or value == "NULL":
+			return replace
 		else:
 			return value
 

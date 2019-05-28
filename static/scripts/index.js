@@ -27,6 +27,7 @@ $.get("/api/get_metadata", function (rtn_string) {
 				update_map_view();
 				update_rank_view();
 				update_info_view();
+				update_summary_view();
 				$("#official-btn").html(current_official);
 			} else {
 				console.log(rtn_string);
@@ -40,6 +41,7 @@ $.get("/api/get_metadata", function (rtn_string) {
  *********************/
 
 init_info_view();
+init_summary_view();
 init_map_view();
 init_rank_view();
 
@@ -49,5 +51,6 @@ init_rank_view();
 
 // additional listener for size-responsiblility of certain views
 $(window).resize(function () { 
-	// update_rank_view();
+	update_rank_view();
+	update_summary_view();
 });

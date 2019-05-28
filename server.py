@@ -27,16 +27,18 @@ def get_line_data():
 	rank_point, rank_path = dt.get_rank_data()
 	edu_point, edu_path = dt.get_edu_data()
 	x_min, x_max, y_min, y_max, x_list, y_list = dt.get_line_metadata()
+	congress_ranges = dt.get_congress_data()
 	return json.dumps({
 		"rank_point": rank_point,
 		"rank_path": rank_path,
 		"edu_point": edu_point,
 		"edu_path": edu_path,
-		"x_min": x_min - 5, 
+		"congress_ranges": congress_ranges,
+		"x_min": x_min, 
 		"x_max": x_max, 
 		"y_min": y_min, 
 		"y_max": y_max, 
-		"x_list": [""] + x_list, 
+		"x_list": x_list, 
 		"y_list": y_list
 	})
 
@@ -46,6 +48,14 @@ def get_map_data():
 	return json.dumps({
 		"loc_dict": loc_dict, 
 		"loc_path": loc_path
+	})
+
+@app.route("/api/get_summary_data", methods=["GET"])
+def get_summary_data():
+	type_summary, rank_summary = dt.get_summary_data()
+	return json.dumps({
+		"type_summary": type_summary,
+		"rank_summary": rank_summary
 	})
 
 @app.route("/api/update_official/<message>", methods=["GET"])

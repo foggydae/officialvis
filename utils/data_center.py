@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import math
 from pprint import pprint
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 class data_center(config):
 
@@ -35,6 +35,7 @@ class data_center(config):
 			"lat": self.UNKNOWN_LAT,
 			"lon": self.UNKNOWN_LON,
 			"resume": [],
+			"types": Counter(),
 			"duration": 0
 		})
 		cur_loc = ""
@@ -46,6 +47,7 @@ class data_center(config):
 			loc_dict[loc]["lat"] = entry["latitude"]
 			loc_dict[loc]["lon"] = entry["longitude"]
 			loc_dict[loc]["resume"].append(entry["description"])
+			loc_dict[loc]["types"].update({entry["type_head"]: entry["duration"]})
 			loc_dict[loc]["duration"] += entry["duration"]
 			if cur_loc != loc:
 				cur_loc = loc
@@ -53,6 +55,9 @@ class data_center(config):
 				cur_geo = (entry["latitude"], entry["longitude"])
 				if len(prev_geo) != 0:
 					loc_path.append([[prev_geo, cur_geo]])
+		for loc in loc_dict.keys():
+			loc_dict[loc]["type"] = loc_dict[loc]["types"].most_common()[0][0]
+			loc_dict[loc]["color"] = self.TYPE_COLOR[loc_dict[loc]["type"]]
 		return loc_dict, loc_path
 
 	def get_summary_data(self):
@@ -94,10 +99,12 @@ class data_center(config):
 	def get_rank_data(self):
 		age_dict = defaultdict(lambda:{
 			"rank": [],
+			"type": Counter(),
 			"stamp": None
 		})
 		for entry in sorted(self.official["resumes"], key=lambda x:datetime.strptime(x["start_timestamp"], self.DATETIME_FORMAT)):
 			age_dict[entry["start_age"]]["rank"].append(entry["rank_num"])
+			age_dict[entry["start_age"]]["type"].update([entry["type_head"]])
 			age_dict[entry["start_age"]]["stamp"] = entry["start_timestamp"]
 
 		rank_point = []
@@ -105,11 +112,14 @@ class data_center(config):
 		prev_rank = 0
 		for cur_age in sorted(age_dict.keys()):
 			cur_rank = max(age_dict[cur_age]["rank"])
+			cur_type = age_dict[cur_age]["type"].most_common()[0][0]
 			cur_stamp = age_dict[cur_age]["stamp"]
 			rank_point.append({
 				"class": "rank",
 				"rank": cur_rank,
 				"date": cur_stamp,
+				"type": cur_type,
+				"color": self.TYPE_COLOR[cur_type],
 				"age": cur_age,
 			})
 			rank_path.append({
@@ -179,7 +189,6 @@ class data_center(config):
 		cur_age = self.MIN_AGE
 		while cur_age <= self.MAX_AGE:
 			cur_year = min_year + (cur_age - self.MIN_AGE)
-			print(cur_year)
 			x_list.append(str(cur_year) + "(" + str(cur_age) + ")")
 			cur_age += 5
 		return strfyear(start_year), strfyear(max_year), self.MIN_TICK, self.MAX_TICK, x_list, self.AXIS_TICKS
@@ -274,7 +283,9 @@ class data_center(config):
 	def _create_work_desc(self, entry):
 		return self._create_date_desc(entry["start_time"], entry["finish_time"]) + \
 			self._create_bilevel_desc(entry["sector_head"], entry["sector_detail"], suffix="，") + \
+			self._create_bilevel_desc(entry["type_head"], entry["type_detail"], suffix="，") + \
 			entry["rank"]
+
 
 	def _create_edu_desc(self, entry):
 		return self._create_date_desc(entry["start_time"], entry["finish_time"]) + \

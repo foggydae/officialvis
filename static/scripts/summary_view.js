@@ -1,9 +1,9 @@
 'use strict';
 var summary_margin = {
-	"left": 10,
-	"right": 10,
+	"left": 15,
+	"right": 15,
 	"top": 5,
-	"bottom": 10
+	"bottom": 15
 };
 var summary_svg;
 var x_scale, y_scale;
@@ -40,9 +40,6 @@ var update_summary_view = function () {
 		x_scale.range([0, summary_view_width]).domain([0, 1]);
 		y_scale.range([0, summary_view_height]).domain([0, 6]);
 
-		console.log(summary_view_height);
-		console.log(y_scale(1));
-
 		summary_svg.selectAll("*").remove();
 		var title_group = summary_svg.append("g")
 			.attr("transform", "translate(" + summary_margin.left + "," + summary_margin.top + ")");
@@ -67,7 +64,8 @@ var update_summary_view = function () {
 			.attr("y", 0)
 			.attr("fill", function (d) {
 				return d.color;
-			});
+			})
+			.attr("opacity", 0.9);
 
 		type_group.selectAll("text")
 			.data(type_summary)
@@ -76,17 +74,17 @@ var update_summary_view = function () {
 			.attr("transform", "rotate(-90)")
 			.attr("dx", -1)
 			.attr("dy", function (d) {
-				return x_scale(d.start) + 8;
+				return x_scale(d.start) + 9;
 			})
 			.html(function (d) {
 		        var dx = d3.select(this).attr("dx");//get the x position of the text
 		        var dy = d3.select(this).attr("dy");//get the y position of the text
-		        var duration = "<tspan x="+dx+" dy=9>"+d.duration+"天</tspan>";
+		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"天</tspan>";
 		        return d.title + duration;//appending it to the html
 			})
 			.style({
 				"text-anchor": "end",
-				"font-size": 8
+				"font-size": 9
 			})
 
 		rank_group.selectAll("rect")
@@ -114,17 +112,17 @@ var update_summary_view = function () {
 			.attr("transform", "rotate(-90)")
 			.attr("dx", -1)
 			.attr("dy", function (d) {
-				return x_scale(d.start) + 8;
+				return x_scale(d.start) + 9;
 			})
 			.html(function (d) {
 		        var dx = d3.select(this).attr("dx");//get the x position of the text
 		        var dy = d3.select(this).attr("dy");//get the y position of the text
-		        var duration = "<tspan x="+dx+" dy=9>"+d.duration+"天</tspan>";
+		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"天</tspan>";
 		        return d.title + duration;//appending it to the html
 			})
 			.style({
 				"text-anchor": "end",
-				"font-size": 8
+				"font-size": 9
 			})
 			.style("fill", function (d) {
 				if (d.rank_num < 6) {

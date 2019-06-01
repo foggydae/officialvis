@@ -6,8 +6,8 @@ var x_scale, y_scale, xaxis_scale, yaxis_scale;
 var view_width, view_height;
 var x_axis, y_axis;
 var margin = {
-    "left": 65,
-    "right": 20,
+    "left": 75,
+    "right": 25,
     "top": 20,
     "bottom": 20
 };
@@ -51,11 +51,11 @@ var update_rank_view = function () {
         var line_data = JSON.parse(rtn_string);
         console.log(line_data);
 
-        var rank_data = line_data["rank_path"];
-        var diploma_data = line_data["edu_path"];
-        var promo_data = line_data["rank_point"];
-        var edu_data = line_data["edu_point"];
-        var congress_data = line_data["congress_ranges"]
+        var rank_path = line_data["rank_path"];
+        var edu_paths = line_data["edu_path"];
+        var rank_point = line_data["rank_point"];
+        var edu_point = line_data["edu_point"];
+        var congress_ranges = line_data["congress_ranges"]
 
         // Set the ranges
         x_scale.range([0, view_width]).domain([new Date(line_data["x_min"]), new Date(line_data["x_max"])]);
@@ -77,10 +77,10 @@ var update_rank_view = function () {
         // rank
         rank_group.append("path")
             .attr("class", "line")
-            .attr("d", valueline(rank_data));
+            .attr("d", valueline(rank_path));
 
         rank_group.selectAll("circle")
-            .data(promo_data)
+            .data(rank_point)
             .enter()
             .append("circle")
             .attr("cx", function(d) {
@@ -89,23 +89,28 @@ var update_rank_view = function () {
             .attr("cy", function(d) {
                 return y_scale(d.rank);
             })
-            .attr("r", 3)
+            .attr("r", 4)
             .style({
                 "opacity": 0.9,
-                "stroke": "darkgreen",
-                "fill": "transparent",
+                "fill-opacity": 0.8,
                 "stroke-width": 2
+            })
+            .style("stroke", function (d) {
+                return d.color;
+            })
+            .style("fill", function (d) {
+                return d.color;
             });
 
         // education
-        for (let i = 0; i < diploma_data.length; i++) {
+        for (let i = 0; i < edu_paths.length; i++) {
             edu_group.append("path")
                 .attr("class", "line")
-                .attr("d", valueline(diploma_data[i]));
+                .attr("d", valueline(edu_paths[i]));
         }
 
         edu_group.selectAll("circle")
-            .data(edu_data)
+            .data(edu_point)
             .enter()
             .append("circle")
             .attr("cx", function(d) {
@@ -114,7 +119,7 @@ var update_rank_view = function () {
             .attr("cy", function(d) {
                 return y_scale(d.diploma);
             })
-            .attr("r", 3)
+            .attr("r", 4)
             .style({
                 "opacity": 0.9,
                 "stroke-width": 2
@@ -173,7 +178,7 @@ var update_rank_view = function () {
         }
 
         congress_group.selectAll("rect")
-            .data(congress_data)
+            .data(congress_ranges)
             .enter()
             .append("rect")
             .attr("width", function (d) {
@@ -194,7 +199,7 @@ var update_rank_view = function () {
             .attr("opacity", 0.15);
 
         congress_group.selectAll("text")
-            .data(congress_data)
+            .data(congress_ranges)
             .enter()
             .append("text")
             .attr("dx", function (d) {
@@ -206,7 +211,7 @@ var update_rank_view = function () {
             })
             .style({
                 "text-anchor": "middle",
-                "font-size": 8,
+                "font-size": 10,
                 "opacity": 0.5
             })
 
@@ -216,7 +221,7 @@ var update_rank_view = function () {
             .html("年份(年龄)")
             .style({
                 "text-anchor": "middle",
-                "font-size": 8
+                "font-size": 10
             })
     })
 }

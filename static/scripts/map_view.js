@@ -53,7 +53,8 @@ var update_map_view = function () {
 			new_places.addLayer(
 				L.circleMarker([resume_by_loc[loc]["lat"], resume_by_loc[loc]["lon"]], {
 					radius: Math.sqrt(resume_by_loc[loc]["duration"]) / 2,
-					weight: 1
+					weight: 1,
+					color: resume_by_loc[loc]["color"]
 				})
 				.bindPopup(str)
 				.on("mouseover", function(d) {

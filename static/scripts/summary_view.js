@@ -79,7 +79,7 @@ var update_summary_view = function () {
 			.html(function (d) {
 		        var dx = d3.select(this).attr("dx");//get the x position of the text
 		        var dy = d3.select(this).attr("dy");//get the y position of the text
-		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"天</tspan>";
+		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"年</tspan>";
 		        return d.title + duration;//appending it to the html
 			})
 			.style({
@@ -117,7 +117,7 @@ var update_summary_view = function () {
 			.html(function (d) {
 		        var dx = d3.select(this).attr("dx");//get the x position of the text
 		        var dy = d3.select(this).attr("dy");//get the y position of the text
-		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"天</tspan>";
+		        var duration = "<tspan x="+dx+" dy=9 font-size=8>"+d.duration+"年</tspan>";
 		        return d.title + duration;//appending it to the html
 			})
 			.style({

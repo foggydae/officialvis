@@ -51,11 +51,12 @@ var update_rank_view = function () {
         var line_data = JSON.parse(rtn_string);
         console.log(line_data);
 
-        var rank_path = line_data["rank_path"];
+        var rank_paths = line_data["rank_path"];
         var edu_paths = line_data["edu_path"];
         var rank_point = line_data["rank_point"];
         var edu_point = line_data["edu_point"];
-        var congress_ranges = line_data["congress_ranges"]
+        var rank_connection = line_data["rank_connection"];
+        var congress_ranges = line_data["congress_ranges"];
 
         // Set the ranges
         x_scale.range([0, view_width]).domain([new Date(line_data["x_min"]), new Date(line_data["x_max"])]);
@@ -75,14 +76,49 @@ var update_rank_view = function () {
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // rank
-        rank_group.append("path")
-            .attr("class", "line")
-            .attr("d", valueline(rank_path));
+        // for (let i = 0; i < rank_paths.length; i++) {
+        //     rank_group.append("path")
+        //         .attr("class", "line")
+        //         .attr("d", valueline(rank_paths[i]));
+        // }
+        rank_group.selectAll(".rank")
+            .data(rank_paths)
+            .enter()
+            .append("path")
+            .attr("class", function(d) {
+                return d.class;
+            })
+            .style("stroke", function(d) {
+                return d.color;
+            })
+            .style("stroke-width", 2)
+            .style("fill", "none")
+            .attr("d", function(d) {
+                return valueline(d.path);
+            });
+
+        rank_group.selectAll(".connection")
+            .data(rank_connection)
+            .enter()
+            .append("path")
+            .attr("class", function(d) {
+                return d.class;
+            })
+            .style("stroke", "darkgray")
+            .style("stroke-width", 1)
+            .style("stroke-dasharray", [2,1])
+            .style("fill", "none")
+            .attr("d", function(d) {
+                return valueline(d.path);
+            });
 
         rank_group.selectAll("circle")
             .data(rank_point)
             .enter()
             .append("circle")
+            .attr("class", function(d) {
+                return d.class;
+            })
             .attr("cx", function(d) {
                 return x_scale(new Date(d.date));
             })
@@ -103,11 +139,32 @@ var update_rank_view = function () {
             });
 
         // education
-        for (let i = 0; i < edu_paths.length; i++) {
-            edu_group.append("path")
-                .attr("class", "line")
-                .attr("d", valueline(edu_paths[i]));
-        }
+        edu_group.selectAll(".edu")
+            .data(edu_paths)
+            .enter()
+            .append("path")
+            .attr("class", function(d) {
+                return d.class;
+            })
+            .style("stroke", "darkred")
+            .style("stroke-width", 2)
+            .style("stroke-dasharray", function(d) {
+                if (d.part_time == 1) {
+                    return [2, 1];
+                } else {
+                    return "none";
+                }
+            })
+            .style("fill", "none")
+            .attr("d", function(d) {
+                return valueline(d.path);
+            });
+
+        // for (let i = 0; i < edu_paths.length; i++) {
+        //     edu_group.append("path")
+        //         .attr("class", "line")
+        //         .attr("d", valueline(edu_paths[i]));
+        // }
 
         edu_group.selectAll("circle")
             .data(edu_point)
@@ -117,7 +174,7 @@ var update_rank_view = function () {
                 return x_scale(new Date(d.date));
             })
             .attr("cy", function(d) {
-                return y_scale(d.diploma);
+                return y_scale(d.rank);
             })
             .attr("r", 4)
             .style({

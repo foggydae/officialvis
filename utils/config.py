@@ -30,6 +30,22 @@ class config():
 		"其他": 0
 	}
 
+	RANK_TICKS = [
+		"-",			#  0
+		"副科/营级",		#  1
+		"正科/营级",		#  2
+		"副处/团级",		#  3
+		"正处/团级",		#  4
+		"副厅/师级",		#  5
+		"正厅/师级",		#  6
+		"副部/军级",		#  7
+		"正部/军级",		#  8
+		"副大军区级",		#  9
+		"正大军区级",		# 10
+		"副国级",		# 11
+		"正国级"			# 12
+	]
+
 	RANK_COLOR = {
 		"-": '#ffffcc',
 		"副科/营级": '#ffeda0',
@@ -56,31 +72,20 @@ class config():
 		"NA": 0
 	}
 
-	MIN_AGE = 15
-	MAX_AGE = 80
-	MIN_TICK = min(DEGREE_MAP.values())
-	MAX_TICK = max(RANK_MAP.values())
-
-	AXIS_TICKS = [
+	DEGREE_TICKS = [
 		"培训",			# -5
 		"博士",			# -4
 		"硕士",			# -3
 		"本科",			# -2
 		"专科",			# -1
-		"-",			#  0
-		"副科/营级",		#  1
-		"正科/营级",		#  2
-		"副处/团级",		#  3
-		"正处/团级",		#  4
-		"副厅/师级",		#  5
-		"正厅/师级",		#  6
-		"副部/军级",		#  7
-		"正部/军级",		#  8
-		"副大军区级",		#  9
-		"正大军区级",		# 10
-		"副国级",		# 11
-		"正国级"			# 12
+		"NA"			#  0
 	]
+
+	MIN_AGE = 15
+	MAX_AGE = 80
+	MIN_TICK = min(DEGREE_MAP.values())
+	MAX_TICK = max(RANK_MAP.values())
+	AXIS_TICKS = DEGREE_TICKS[:-1] + RANK_TICKS
 
 	NATIONAL_CONGRESS = {
 		12: "1982-09-01T00:00:00",

@@ -60,33 +60,13 @@ class data_center(config):
 			loc_dict[loc]["color"] = self.TYPE_COLOR[loc_dict[loc]["type"]]
 		return loc_dict, loc_path
 
-	def get_rank_summary_data(self):
-		rank_dict = defaultdict(int)
-		total_duration = 0
-		for period in self.official["type_by_period"]:
-			rank_dict[period["rank_num"]] += period["duration"]
-			total_duration += period["duration"]
-
-		yet_duration = 0
-		rank_summary = []
-		for rank_num, duration in rank_dict.items():
-			rank_summary.append({
-				"title": self.RANK_TICKS[rank_num],
-				"rank_num": rank_num,
-				"color": self.RANK_COLOR[self.RANK_TICKS[rank_num]],
-				"duration": round(duration / 365, 1),
-				"percentage": duration / total_duration,
-				"start":yet_duration / total_duration
-			})
-			yet_duration += duration
-
-		return rank_summary
-
-	def get_type_summary_data(self):
+	def get_summary_data(self):
 		type_dict = defaultdict(int)
+		rank_dict = defaultdict(int)
 		total_duration = 0
 		for entry in self.official["resumes"]:
 			type_dict[entry["type_head"]] += entry["duration"]
+			rank_dict[entry["rank_num"]] += entry["duration"]
 			total_duration += entry["duration"]
 
 		yet_duration = 0
@@ -101,107 +81,163 @@ class data_center(config):
 			})
 			yet_duration += duration
 
-		return type_summary
+		yet_duration = 0
+		rank_summary = []
+		for rank_num, duration in rank_dict.items():
+
+			rank_summary.append({
+				"title": self.RANK_TICKS[rank_num],
+				"rank_num": rank_num,
+				"color": self.RANK_COLOR[self.RANK_TICKS[rank_num]],
+				"duration": duration,
+				"percentage": duration / total_duration,
+				"start":yet_duration / total_duration
+			})
+			yet_duration += duration
+
+		return type_summary, rank_summary
 
 	def get_rank_data(self):
 		rank_point = []
 		rank_path = []
 		rank_connection = []
 
-		prev_stamp = self._to_date(self._strfyear(self._to_date(self.official["birth_timestamp"]).year + self.MIN_AGE))
+		prev_stamp = self._strfyear(self._to_date(self.official["birth_timestamp"]).year + self.MIN_AGE)
 		prev_rank = 0
 
 		for idx, period in enumerate(self.official["type_by_period"]):
 			cur_stamp = period["start_timestamp"]
 			end_stamp = period["end_timestamp"]
 			cur_rank = period["rank_num"]
-			cur_type = period["type"]
-			cur_desc = period["descriptions"]
 			# 1. add prefix connection when necessary
 			connection = []
 			# verify if horizontal connection is required
-			if self._to_date(cur_stamp) > prev_stamp:
+			if self._to_date(period["start_timestamp"]) > prev_stamp:
 				connection.append({
+					"class": "connection",
 					"rank": prev_rank,
-					"date": prev_stamp.strftime(self.DATETIME_FORMAT)
+					"date": prev_stamp
 				})
-			if self._to_date(cur_stamp) < prev_stamp:
+			if self._to_date(period["start_timestamp"]) < prev_stamp:
 				print("[ERROR] start_timestamp < prev_stamp")
-			# add necessary intermediate point
 			connection.append({
+				"class": "connection",
 				"rank": prev_rank,
 				"date": cur_stamp
 			})
 			# verify if vertical connection is required
 			if cur_rank != prev_rank:
 				connection.append({
+					"class": "connection",
 					"rank": cur_rank,
 					"date": cur_stamp
 				})
 			if len(connection) > 1:
-				rank_connection.append({"class": "connection", "path": connection})
+				rank_connection.append(connection)
 
 			# 2. add current period's line
-			rank_path.append({
-				"path": [{
+			rank_path.append([{
+					"class": "rank",
+					"id": "period" + str(idx),
 					"rank": cur_rank,
 					"date": cur_stamp
 				}, {
+					"class": "rank",
+					"id": "period" + str(idx),
 					"rank": cur_rank,
 					"date": end_stamp
-				}],
-				"class": "rank",
-				"id": "period" + str(idx),
-				"type": cur_type,
-				"color": self.TYPE_COLOR[cur_type],
-				"desc": cur_desc
-			})
+				}])
 
 			# 3. add current period's point
 			rank_point.append({
-				"class": "resume",
+				"class": "rank",
 				"id": "period" + str(idx),
 				"rank": cur_rank,
 				"date": cur_stamp,
 				"type": cur_type,
 				"color": self.TYPE_COLOR[cur_type],
-				"desc": cur_desc
+				"age": cur_age,
 			})
 
 			# 4. update prev_stamp & prev_rank
-			prev_stamp = self._to_date(end_stamp)
+			prev_stamp = end_stamp
 			prev_rank = cur_rank
 
-		return rank_point, rank_path, rank_connection
+
+	def get_rank_data(self):
+		age_dict = defaultdict(lambda:{
+			"rank": [],
+			"type": Counter(),
+			"stamp": None
+		})
+		for entry in sorted(self.official["resumes"], key=lambda x:self._to_date(x["start_timestamp"])):
+			age_dict[entry["start_age"]]["rank"].append(entry["rank_num"])
+			age_dict[entry["start_age"]]["type"].update([entry["type_head"]])
+			age_dict[entry["start_age"]]["stamp"] = entry["start_timestamp"]
+
+		rank_point = []
+		rank_path = []
+		prev_rank = 0
+		for cur_age in sorted(age_dict.keys()):
+			cur_rank = max(age_dict[cur_age]["rank"])
+			cur_type = age_dict[cur_age]["type"].most_common()[0][0]
+			cur_stamp = age_dict[cur_age]["stamp"]
+			rank_point.append({
+				"class": "rank",
+				"rank": cur_rank,
+				"date": cur_stamp,
+				"type": cur_type,
+				"color": self.TYPE_COLOR[cur_type],
+				"age": cur_age,
+			})
+			rank_path.append({
+				"class": "rank",
+				"rank": prev_rank,
+				"date": cur_stamp,
+				"age": cur_age
+			})
+			if prev_rank != cur_rank:
+				prev_rank = cur_rank
+				rank_path.append({
+					"class": "rank",
+					"rank": cur_rank,
+					"date": cur_stamp,
+					"age": cur_age
+				})
+		rank_path.append({
+			"class": "rank",
+			"rank": prev_rank,
+			"date": self._parse_date("today"),
+			"age": self.official["current_age"]
+		})
+		return rank_point, rank_path
 
 	def get_edu_data(self):
 		edu_point = []
 		edu_path = []
 		for entry in sorted(self.official["educations"], key=lambda x:self._to_date(x["start_timestamp"])):
-			cur_path = [
+			cur_data = [
 				{
 					"rank": entry['diploma_num'],
+					"diploma": entry['diploma_num'],
 					"date": entry['start_timestamp'],
+					"age": entry['start_age'],
 					"part_time": entry['type'],
 					"color": self.MAJOR_COLOR[entry["major"]],
-					"class": "degree",
+					"class": "edu",
 					"type": "start"
 				}, {
 					"rank": entry['diploma_num'],
+					"diploma": entry['diploma_num'],
 					"date": entry['finish_timestamp'],
+					"age": entry['end_age'],
 					"part_time": entry['type'],
 					"color": self.MAJOR_COLOR[entry["major"]],
-					"class": "degree",
+					"class": "edu",
 					"type": "end"
 				}
 			]
-			cur_data = {
-				"path": cur_path,
-				"class": "edu",
-				"major": entry["major"],
-				"part_time": entry['type']
-			}
-			edu_point.extend(cur_path)
+			edu_point.extend(cur_data)
 			edu_path.append(cur_data)
 		return edu_point, edu_path
 
@@ -318,9 +354,17 @@ class data_center(config):
 			return False
 
 		period_list = []
+		# period_dict = defaultdict(lambda: {
+		# 	"rank_num": 0,
+		# 	"descriptions": defaultdict(set)
+		# })
+
 		for entry in resumes:
 			cur_desc = entry["description"]
 			cur_period = (self._to_date(entry["start_timestamp"]), self._to_date(entry["finish_timestamp"]))
+			# period_dict[cur_period]["rank_num"] = \
+			# 	max(period_dict[cur_period]["rank_num"], entry["rank_num"])
+			# period_dict[cur_period]["descriptions"][cur_period].add(entry["description"])
 
 			overlaps = [cur_period]
 			for ext_period in period_list:
@@ -340,6 +384,16 @@ class data_center(config):
 			# time_pt = sorted(list(set(list(unzip_overlap[0]) + list(unzip_overlap[1]))))
 
 			new_periods = list(zip(time_pt[:-1], time_pt[1:]))
+			# for new_period in new_periods:
+			# 	for ext_period in period_list:
+			# 		if check_overlap(new_period, ext_period):
+			# 			period_dict[new_period]["rank_num"] = \
+			# 				max(period_dict[new_period]["rank_num"], period_dict[ext_period]["rank_num"])
+			# 			for desc_period in period_dict[ext_period]["descriptions"].keys():
+			# 				if check_overlap(new_period, desc_period):
+			# 					period_dict[new_period]["descriptions"][desc_period] = \
+			# 						period_dict[new_period]["descriptions"][desc_period] | \
+			# 						period_dict[ext_period]["descriptions"][desc_period]
 			period_list = list(set(period_list) - set(overlaps)) + new_periods
 
 		type_by_period = []
@@ -357,7 +411,6 @@ class data_center(config):
 			type_by_period.append({
 				"start_timestamp": period[0].strftime(self.DATETIME_FORMAT),
 				"end_timestamp": period[1].strftime(self.DATETIME_FORMAT),
-				"duration": self._calc_time_gap(period[0], period[1], by="d"),
 				"rank_num": max(rank_list),
 				"rank": self.RANK_TICKS[max(rank_list)],
 				"descriptions": desc_list,
@@ -489,11 +542,11 @@ class data_center(config):
 	def _calc_time_gap(self, dt1, dt2 = None, by = "y"):
 		if dt1 is None:
 			dt1 = datetime.today()
-		elif type(dt1) == str:
+		else:
 			dt1 = self._to_date(dt1)	
 		if dt2 is None:
 			dt2 = datetime.today()
-		elif type(dt2) == str:
+		else:
 			dt2 = self._to_date(dt2)	
 
 		if by == "d":

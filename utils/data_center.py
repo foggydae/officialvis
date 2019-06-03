@@ -83,11 +83,33 @@ class data_center(config):
 		return rank_summary
 
 	def get_type_summary_data(self):
-		type_dict = defaultdict(int)
-		total_duration = 0
+		type_dict = defaultdict(set)
+
 		for entry in self.official["resumes"]:
-			type_dict[entry["type_head"]] += entry["duration"]
-			total_duration += entry["duration"]
+			type_dict[entry["type_head"]].add((
+				self._to_date(entry["start_timestamp"]),
+				self._to_date(entry["finish_timestamp"])
+			))
+
+		total_duration = 0
+		for cur_type in type_dict.keys():
+			ranges = list(type_dict[cur_type])
+			sorted_ranges = list(sorted(ranges, key=lambda range:range[0]))
+			idx = 1
+			while idx < len(sorted_ranges):
+				if self._check_overlap(sorted_ranges[idx - 1], sorted_ranges[idx], eq_included=True):
+					sorted_ranges[idx - 1] = (
+						min(sorted_ranges[idx - 1][0], sorted_ranges[idx][0]),
+						max(sorted_ranges[idx - 1][1], sorted_ranges[idx][1])
+					)
+					del sorted_ranges[idx]
+				else:
+					idx += 1
+			cur_duration = 0
+			for cur_range in sorted_ranges:
+				cur_duration += self._calc_time_gap(cur_range[0], cur_range[1], by="d")
+			total_duration += cur_duration
+			type_dict[cur_type] = cur_duration
 
 		yet_duration = 0
 		type_summary = []
@@ -95,13 +117,34 @@ class data_center(config):
 			type_summary.append({
 				"title": title,
 				"color": self.TYPE_COLOR[title],
-				"duration": duration,
+				"duration": round(duration / 365, 1),
 				"percentage": duration / total_duration,
 				"start":yet_duration / total_duration
 			})
 			yet_duration += duration
 
 		return type_summary
+
+	# def get_type_summary_data(self):
+	# 	type_dict = defaultdict(list)
+	# 	total_duration = 0
+	# 	for entry in self.official["resumes"]:
+	# 		type_dict[entry["type_head"]] += entry["duration"]
+	# 		total_duration += entry["duration"]
+
+	# 	yet_duration = 0
+	# 	type_summary = []
+	# 	for title, duration in type_dict.items():
+	# 		type_summary.append({
+	# 			"title": title,
+	# 			"color": self.TYPE_COLOR[title],
+	# 			"duration": duration,
+	# 			"percentage": duration / total_duration,
+	# 			"start":yet_duration / total_duration
+	# 		})
+	# 		yet_duration += duration
+
+	# 	return type_summary
 
 	def get_rank_data(self):
 		rank_point = []
@@ -312,10 +355,6 @@ class data_center(config):
 		return resumes[-1]
 
 	def _summarize_by_type(self, resumes):
-		def check_overlap(period1, period2):
-			if period1[0] < period2[1] and period2[0] < period1[1]:
-				return True
-			return False
 
 		period_list = []
 		for entry in resumes:
@@ -324,7 +363,7 @@ class data_center(config):
 
 			overlaps = [cur_period]
 			for ext_period in period_list:
-				if check_overlap(ext_period, cur_period):
+				if self._check_overlap(ext_period, cur_period):
 					overlaps.append(ext_period)
 			period_list.append(cur_period)
 			# use unique start to split new period
@@ -349,7 +388,7 @@ class data_center(config):
 			rank_list = []
 			for entry in resumes:
 				entry_period = (self._to_date(entry["start_timestamp"]), self._to_date(entry["finish_timestamp"]))
-				if check_overlap(period, entry_period):
+				if self._check_overlap(period, entry_period):
 					type_list.append(entry["type_head"])
 					desc_list.append(entry["description"])
 					rank_list.append(entry["rank_num"])
@@ -365,9 +404,6 @@ class data_center(config):
 			})
 
 		return type_by_period
-
-	def _summarize_by_rank(self, resumes):
-		pass
 
 	def _prioritize_type(self, type_list):
 		select_type = ""
@@ -448,6 +484,13 @@ class data_center(config):
 	def _strfyear(self, year):
 		return datetime(year=year, month=1, day=1).strftime(self.DATETIME_FORMAT)
 
+	def _check_overlap(self, period1, period2, eq_included=False):
+		if (not eq_included) and period1[0] < period2[1] and period2[0] < period1[1]:
+			return True
+		elif eq_included and period1[0] <= period2[1] and period2[0] <= period1[1]:
+			return True
+		return False
+
 	def _parse_geo(self, province, city, county, central = None):
 		try:
 			if central is not None and central == True:
@@ -506,4 +549,4 @@ class data_center(config):
 if __name__ == '__main__':
 	test_dc = data_center()
 	test_dc.update_official("蔡奇")
-	pprint(test_dc.official)
+	test_dc.get_type_summary_data_test()

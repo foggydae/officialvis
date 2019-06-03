@@ -21,7 +21,8 @@ var init_rank_view = function () {
 
     // Define the axes
     x_axis = d3.svg.axis().scale(xaxis_scale)
-        .orient("bottom");
+        .orient("bottom")
+        .innerTickSize(3);
     y_axis = d3.svg.axis().scale(yaxis_scale)
         .orient("left");
 

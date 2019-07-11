@@ -125,27 +125,6 @@ class data_center(config):
 
 		return type_summary
 
-	# def get_type_summary_data(self):
-	# 	type_dict = defaultdict(list)
-	# 	total_duration = 0
-	# 	for entry in self.official["resumes"]:
-	# 		type_dict[entry["type_head"]] += entry["duration"]
-	# 		total_duration += entry["duration"]
-
-	# 	yet_duration = 0
-	# 	type_summary = []
-	# 	for title, duration in type_dict.items():
-	# 		type_summary.append({
-	# 			"title": title,
-	# 			"color": self.TYPE_COLOR[title],
-	# 			"duration": duration,
-	# 			"percentage": duration / total_duration,
-	# 			"start":yet_duration / total_duration
-	# 		})
-	# 		yet_duration += duration
-
-	# 	return type_summary
-
 	def get_rank_data(self):
 		rank_point = []
 		rank_path = []
@@ -308,6 +287,7 @@ class data_center(config):
 			# calculate length of stay
 			resume_entry['start_timestamp'] = self._parse_date(resume_entry['start_time'], fill_today=True)
 			resume_entry['finish_timestamp'] = self._parse_date(resume_entry['finish_time'], fill_today=True)
+			resume_entry['is_today'] = resume_entry['finish_timestamp'] == self._parse_date(None, fill_today=True)
 			resume_entry['duration'] = \
 				self._calc_time_gap(resume_entry['start_timestamp'], resume_entry['finish_timestamp'], by="d")
 
@@ -331,8 +311,8 @@ class data_center(config):
 			edu_entry["description"] = self._create_edu_desc(edu_entry)
 
 			# calculate timestamp
-			edu_entry["start_timestamp"] = self._parse_date(edu_entry["start_time"])
-			edu_entry["finish_timestamp"] = self._parse_date(edu_entry["finish_time"])
+			edu_entry["start_timestamp"] = self._parse_date(edu_entry["start_time"], fill_today=True)
+			edu_entry["finish_timestamp"] = self._parse_date(edu_entry["finish_time"], fill_today=True)
 
 			# calculate age
 			edu_entry['start_age'] = \
@@ -352,7 +332,8 @@ class data_center(config):
 		return ofcl_dataset
 
 	def _find_latest_resume(self, resumes):
-		return resumes[-1]
+		candidate = [entry for entry in resumes if entry["is_today"] and entry["title_detail"] == "任职"]
+		return sorted(candidate, key=lambda x:self._to_date(x["start_timestamp"]))[0]
 
 	def _summarize_by_type(self, resumes):
 
